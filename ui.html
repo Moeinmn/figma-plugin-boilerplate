@@ -1,0 +1,107 @@
+<link
+  href="https://fonts.googleapis.com/css?family=Plus Jakarta Sans"
+  rel="stylesheet"
+/>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/thomas-lowry/figma-plugin-ds/dist/figma-plugin-ds.css"
+/>
+
+<style>
+  body {
+    text-align: center;
+  }
+  .plotset {
+    font-family: "Plus Jakarta Sans";
+    font-size: 30px;
+    color: #0061f7 !important;
+  }
+  .container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0px 20px 20px 20px;
+  }
+
+  .full-width-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    margin-bottom: 20px;
+  }
+  .input-blue-border{
+    border: 1px solid #0061f7;
+  }
+
+  .centered-btn {
+    margin-top:10px;
+    display: flex;
+    justify-content: center;
+  }
+</style>
+
+
+<iframe
+  src="https://plotset.com/panel/my-projects"
+  id="frame"
+  onclick=""
+  allow-same-origin
+  style="
+    width: 100%;
+    height: 100%;
+    border: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    z-index: 999999;
+  "
+>
+</iframe>
+<script>
+  let iframe = document.querySelector("#frame");
+  console.log({ iframe });
+  let content = iframe?.contentWindow;
+  console.log({ content });
+
+//Add eventlistener for message from site frame
+  window.onmessage = function (e) {
+      if (e.data?.command === "figma_ping") {
+         content.postMessage({ command: "figma_pong" }, "*");
+      }
+  };
+
+
+  window.onload = function (e) {
+
+    
+ 
+  function yyy(){
+      document.querySelector(".export")?.addEventListener("click", async () => {
+      content.postMessage({ command: "export_svg" }, "*");
+    });
+
+    document.querySelector(".loadChart").addEventListener("click", async () => {
+      let input = document.querySelector(".input__field")
+      iframe.src = input.value
+    });
+  }
+
+    //Receiving message from child Iframe and send it to figma
+    window.onmessage = function (e) {
+      if (e.data?.command) {
+        console.log("It works! parent", e.data.svg);
+
+        const reader = new FileReader();
+        reader.readAsDataURL(e.data?.svg);
+        reader.onloadend = function () {
+          const base64data = reader.result.split(",")[1];
+          window.parent.postMessage(
+            {
+              pluginMessage: { type: "data_received", value: atob(base64data) },
+            },
+            "*"
+          );
+        };
+      }
+    };
+  };
+</script>
